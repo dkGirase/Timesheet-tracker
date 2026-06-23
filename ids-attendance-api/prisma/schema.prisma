@@ -1,0 +1,438 @@
+generator client {
+  provider = "prisma-client"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============= ENUMS =============
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  EMPLOYEE
+  INTERN
+  CONSULTANT
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum HalfDayPeriod {
+  FIRST_HALF
+  SECOND_HALF
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LEAVE_FULL_DAY
+  LEAVE_HALF_DAY
+  HOLIDAY
+  COMP_OFF
+  WORK_FROM_HOME
+}
+
+enum TimeLogType {
+  LOGIN
+  LOGOUT
+  AUTO
+}
+
+enum Department {
+  MARKETING
+  MARKETING_SEO
+  EMAIL_MARKETING
+  MARKET_RESEARCH
+  GRAPHIC_DESIGNER
+  DIGITAL_MARKETING
+  SALES
+  ENGINEERING
+  OTHER
+}
+
+enum OvertimeStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum WeekDay {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum LogoutRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ============= USER =============
+
+model User {
+  id Int @id @default(autoincrement())
+
+  employeeCode String? @unique @map("employee_code")
+  email        String? @unique @map("email")
+
+  password String? @map("password")
+  pin      String? @map("pin")
+  role     Role
+
+  isActive      Boolean   @default(true) @map("is_active")
+  deactivatedAt DateTime? @map("deactivated_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  userInfo        UserInfo?
+  timeLogs        TimeLog[]
+  attendances     Attendance[]
+  leaveRequests   LeaveRequest[]
+  leaveApprovals  LeaveApprovalAction[]
+  monthlyBalances LeaveBalanceMonth[]
+  holidaysCreated Holiday[]
+
+  // Manual attendance override relations
+  manualAttendanceTargets ManualAttendanceAction[] @relation("AttendanceTarget")
+  manualAttendanceMarked  ManualAttendanceAction[] @relation("AttendanceMarker")
+
+  // Management relation stays as is
+  managedTeams            Team[]                   @relation("TeamManager")
+  teamMembers             TeamMember[]
+  overtimeRequests        OvertimeRequest[]
+  overtimeApprovalActions OvertimeApprovalAction[]
+
+  logoutRequests  LogoutRequest[]
+  logoutApprovals LogoutApprovalAction[]
+
+  @@map("users")
+}
+
+model UserInfo {
+  id Int @id @default(autoincrement())
+
+  userId Int  @unique @map("user_id")
+  user   User @relation(fields: [userId], references: [id])
+
+  firstName  String  @map("first_name")
+  middleName String? @map("middle_name")
+  lastName   String  @map("last_name")
+  gender     Gender? @map("gender")
+
+  dateOfBirth   DateTime? @map("date_of_birth")
+  dateOfJoining DateTime  @map("date_of_joining")
+
+  department Department? @default(OTHER) @map("department")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users_info")
+}
+
+// ============= TEAMS =============
+
+model Team {
+  id          Int     @id @default(autoincrement())
+  name        String  @map("name")
+  description String? @map("description")
+
+  managerId Int?  @map("manager_id")
+  manager   User? @relation("TeamManager", fields: [managerId], references: [id])
+
+  isActive       Boolean @default(true) @map("is_active")
+  shutdownRemark String? @map("shutdown_remark")
+
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  teamMembers  TeamMember[]
+  teamWeekends TeamWeekend[]
+
+  @@unique([name], map: "uq_team_name")
+  @@map("teams")
+}
+
+model TeamMember {
+  userId   Int      @map("user_id")
+  teamId   Int      @map("team_id")
+  joinDate DateTime @default(now()) @map("join_date")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+  team Team @relation(fields: [teamId], references: [id])
+
+  @@id([userId, teamId])
+  @@unique([userId]) // Composite primary key to ensure unique user-team relationships
+  @@map("team_members")
+}
+
+// ============= TIME LOGS =============
+
+model TimeLog {
+  id Int @id @default(autoincrement())
+
+  userId    Int         @map("user_id")
+  timestamp DateTime    @map("timestamp")
+  type      TimeLogType @map("type")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "idx_time_log_user_id")
+  @@map("time_logs")
+}
+
+model LogoutRequest {
+  id Int @id @default(autoincrement())
+
+  userId Int @map("user_id")
+
+  requestedLogout DateTime            @map("requested_logout_time")
+  status          LogoutRequestStatus @default(PENDING) @map("status")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user      User                   @relation(fields: [userId], references: [id])
+  approvals LogoutApprovalAction[]
+
+  @@index([userId], map: "idx_logout_user_id")
+  @@map("logout_requests")
+}
+
+model LogoutApprovalAction {
+  id Int @id @default(autoincrement())
+
+  logoutRequestId Int @map("logout_request_id")
+  approverId      Int @map("approver_id")
+
+  action    LogoutRequestStatus @map("action")
+  createdAt DateTime            @default(now()) @map("created_at")
+
+  // Relations
+  logoutRequest LogoutRequest @relation(fields: [logoutRequestId], references: [id])
+  approver      User          @relation(fields: [approverId], references: [id])
+
+  @@index([logoutRequestId], map: "idx_logout_approval_request_id")
+  @@map("logout_approval_actions")
+}
+
+// ============= DAILY ATTENDANCE =============
+
+model Attendance {
+  id Int @id @default(autoincrement())
+
+  userId        Int              @map("user_id")
+  date          DateTime         @map("date")
+  status        AttendanceStatus @map("status")
+  halfDayPeriod HalfDayPeriod?   @map("half_day_period")
+
+  leaveRequestId Int? @map("leave_request_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user         User          @relation(fields: [userId], references: [id])
+  leaveRequest LeaveRequest? @relation(fields: [leaveRequestId], references: [id])
+
+  @@unique([userId, date], map: "uq_attendance_user_date")
+  @@index([userId], map: "idx_attendance_user_id")
+  @@map("attendance")
+}
+
+// ============= MANUAL ATTENDANCE OVERRIDES =============
+
+model ManualAttendanceAction {
+  id Int @id @default(autoincrement())
+
+  userId     Int      @map("user_id")
+  date       DateTime @map("date")
+  markedById Int      @map("marked_by_id")
+
+  status  AttendanceStatus @map("status")
+  remarks String?          @map("remarks")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user     User @relation("AttendanceTarget", fields: [userId], references: [id])
+  markedBy User @relation("AttendanceMarker", fields: [markedById], references: [id])
+
+  @@index([userId], map: "idx_manual_attendance_user_id")
+  @@index([markedById], map: "idx_manual_attendance_marked_by_id")
+  @@map("manual_attendance_actions")
+}
+
+// ============= LEAVE REQUESTS =============
+
+model LeaveRequest {
+  id Int @id @default(autoincrement())
+
+  userId    Int      @map("user_id")
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+
+  reason  String      @map("reason")
+  details Json        @default("[]") @map("details")
+  status  LeaveStatus @default(PENDING) @map("status")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  requestedBy       User                  @relation(fields: [userId], references: [id])
+  approvals         LeaveApprovalAction[]
+  attendanceRecords Attendance[]
+
+  @@index([userId], map: "idx_leave_user_id")
+  @@map("leave_requests")
+}
+
+// ============= LEAVE APPROVAL FLOW =============
+
+model LeaveApprovalAction {
+  id Int @id @default(autoincrement())
+
+  leaveRequestId Int         @map("leave_request_id")
+  approverId     Int         @map("approver_id")
+  action         LeaveStatus @map("action")
+  remarks        String?     @map("remarks")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  leaveRequest LeaveRequest @relation(fields: [leaveRequestId], references: [id])
+  approver     User         @relation(fields: [approverId], references: [id])
+
+  @@index([leaveRequestId], map: "idx_leave_approval_request_id")
+  @@map("leave_approval_actions")
+}
+
+// ============= MONTHLY LEAVE BALANCES =============
+
+model LeaveBalanceMonth {
+  id Int @id @default(autoincrement())
+
+  userId Int @map("user_id")
+  month  Int
+  year   Int
+
+  earnedBalance    Float @default(0) @map("earned_balance")
+  used             Float @default(0) @map("used")
+  //Below 3 columns to be updated on leave request approval
+  //Alos updated if admin override the attendance
+  halfDayLeaves    Float @default(0) @map("half_day_leaves")
+  fullDayLeaves    Float @default(0) @map("full_day_leaves")
+  leavesWithoutPay Float @default(0) @map("leaves_without_pay")
+  compOffsUsed     Float @default(0) @map("comp_offs_used")
+  workFromHome     Float @default(0) @map("work_from_home")
+  //End of month balance
+  finalBalance     Float @default(0) @map("final_balance")
+  //Begining of month balance
+  initialBalance   Float @default(0) @map("initial_balance")
+  payableDays      Float @default(0) @map("payable_days")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, month, year], map: "uq_user_month_year")
+  @@map("leave_balances_month")
+}
+
+// ============= HOLIDAYS =============
+
+model Holiday {
+  id Int @id @default(autoincrement())
+
+  name        String   @map("name")
+  date        DateTime @map("date")
+  description String?  @map("description")
+
+  createdById Int      @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@unique([date], map: "uq_holiday_date")
+  @@index([createdById], map: "idx_holiday_created_by")
+  @@map("holidays")
+}
+
+model TeamWeekend {
+  id     Int     @id @default(autoincrement())
+  teamId Int     @map("team_id")
+  day    WeekDay @map("day")
+
+  startDate DateTime  @map("start_date")
+  endDate   DateTime? @map("end_date")
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, day, startDate], map: "uq_team_weekend_start")
+  @@index([teamId, day, startDate, endDate], map: "idx_team_weekend_lookup")
+  @@map("team_weekends")
+}
+
+model OvertimeRequest {
+  id Int @id @default(autoincrement())
+
+  userId Int      @map("user_id")
+  date   DateTime @map("date")
+
+  startTime DateTime @map("start_time")
+  endTime   DateTime @map("end_time")
+
+  totalHours Float @map("total_hours")
+
+  reason String         @map("reason")
+  status OvertimeStatus @default(PENDING) @map("status")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user      User                     @relation(fields: [userId], references: [id])
+  approvals OvertimeApprovalAction[]
+
+  @@index([userId, date], map: "idx_overtime_user_date")
+  @@map("overtime_requests")
+}
+
+model OvertimeApprovalAction {
+  id Int @id @default(autoincrement())
+
+  overtimeRequestId Int            @map("overtime_request_id")
+  approverId        Int            @map("approver_id")
+  action            OvertimeStatus @map("action")
+  remarks           String?        @map("remarks")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  overtimeRequest OvertimeRequest @relation(fields: [overtimeRequestId], references: [id])
+  approver        User            @relation(fields: [approverId], references: [id])
+
+  @@index([overtimeRequestId], map: "idx_overtime_approval_request_id")
+  @@map("overtime_approval_actions")
+}

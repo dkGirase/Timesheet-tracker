@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/components/*": ["src/components/*"],
+      "@/lib/*": ["src/components/lib/*"]
+    }
+  },
+  "include": ["src", "utils.js"]
+}

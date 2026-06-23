@@ -1,0 +1,54 @@
+Admin Routes:
+| Method | Route              | Description            |
+| ------ | ------------------ | ---------------------- |
+| GET    | `/admin/users`     | Get all users          |
+| GET    | `/admin/users/:id` | Get user by ID         |
+| POST   | `/admin/users`     | Create new user        |
+| PATCH  | `/admin/users/:id` | Update user            |
+| DELETE | `/admin/users/:id` | Deactivate/delete user |
+
+| Method | Route                 | Description       |
+| ------ | --------------------- | ----------------- |
+| POST   | `/admin/holidays`     | Create holiday    |
+| GET    | `/holidays`           | Get all holidays  |
+| GET    | `/holidays/:id`       | Get holiday by ID |
+| DELETE | `/admin/holidays/:id` | Delete holiday    |
+
+| Method | Route                | Description                     |
+| ------ | -------------------- | ------------------------------- |
+| GET    | `/leave/pending`     | List all pending leave requests |
+| POST   | `/leave/approve/:id` | Approve leave                   |
+| POST   | `/leave/reject/:id`  | Reject leave                    |
+
+| Method | Route                             | Description                           |
+| ------ | --------------------------------- | ------------------------------------- |
+| POST   | `/admin/attendance/override`      | Manually change attendance for a date |
+| GET    | `/admin/attendance/overrides`     | List all overrides                    |
+| GET    | `/admin/attendance/overrides/:id` | View single override record           |
+
+| Method | Route                | Description                                                               |
+| ------ | -------------------- | ------------------------------------------------------------------------- |
+| GET    | `/dashboard/user`    | User dashboard (present, absent, leave days, etc.)                        |
+| GET    | `/dashboard/admin`   | Admin dashboard (counts of users, leave pending, today’s attendance etc.) |
+| GET    | `/dashboard/manager` | Manager dashboard (team attendance, leave requests)                       |
+
+User Routes:
+
+| Method | Route                 | Description                                      |
+| ------ | --------------------- | ------------------------------------------------ |
+| POST   | `/attendance/login`   | User logs in (TimeLog + update daily attendance) |
+| POST   | `/attendance/logout`  | User logs out                                    |
+| GET    | `/attendance/me`      | Get my attendance logs                           |
+| GET    | `/attendance/:userId` | Get specific user's attendance (manager/admin)   |
+
+
+| Method | Route                | Description                     |
+| ------ | -------------------- | ------------------------------- |
+| POST   | `/leave/request`     | User submits a leave request    |
+| GET    | `/leave/my-requests` | User gets own leave requests    |
+| DELETE | `/leave/request/:id` | Cancel own request (if pending) |
+
+| Method | Route                          | Description                   |
+| ------ | ------------------------------ | ----------------------------- |
+| GET    | `/leave/balance/me`            | Get my monthly leave balance  |
+| GET    | `/admin/leave/balance/:userId` | Admin gets user leave balance |

@@ -1,0 +1,29 @@
+We are following Layered architecture in this REST API attendance app:
+  Router figures out which route is being called. Routes are where the request hits first.
+  The request is validated through the role based middlewares.
+  The payload or the params sent in the request is then validated via Data Transfer Objects(DTOs) on the request level itself before hitting the middlewares. DTOs thus act as the first Validation layer.
+  They are then redirected to the appropriate controller. The controller is only supposed to take in the request and send back a response to the client, so all the different responses will be sent from here to the client. Controller is thus the request processor.
+  The controller then makes calls to service, which handles all of the business logic. Service is thus the business logic layer.
+  Then the service makes calls to the Repository which in turn handles all of the database queries which has Select, Upsert and delete.
+  Repository is thus the persistence layer.
+
+  We are using Prisma ORM, which is basically makng it easier for modeling and making queries handling the migrations as well.
+  I'm truly loving this app structure as it helps us move towards enterprise grade architecture.
+
+Dates with timestamp are stored in DB in this format: YYYY-MM-DD HH:MM:SS.sss
+
+List of Features to be implemented:
+  Daily Login, Logout - Attendance
+  Sign Up
+  Role Based Access Control
+  Leave Request & Approval flow
+  Declaration of Company wide holidays
+  Leave Tracking - Present, Absent, Paid Leave, leave balances, payable days
+  A Manager/Admin can override the attendance as per the need
+  Dashboard - Tell the counts
+
+Things to be thought upon:
+  Auto Logout on Half day
+
+To be implemented:
+  Start Working & Stop Working should not be mixed with Login/Logout times. There should be separate button for Start/Stop Working.

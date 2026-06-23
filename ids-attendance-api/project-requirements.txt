@@ -1,0 +1,681 @@
+Sign-Up Process:
+  Employee Code is required and unique for each user. Once set, is permanent and cannot be altered by any user(including by Admin).
+  Email Address is required and unique. Any domain can be used for registration & commmunication.
+  Role Assignment:
+    Valid roles available during sign-up are Employee, Manager, Intern, and Consultant.
+    The role selected during sign-up cannot be altered by the user. Changes to a user’s role can only be made by an Admin.
+    Sign-up as an Admin is not allowed; Admin users are seeded in the database by default.
+  Date of Joining: The Date of Joining must be no later than one week before sign-up. This ensures eligibility for crediting earned leaves after completing minimum three months of service and prevents misuse.
+  Password Requirements: All users must set a strong password that meets the following criteria:
+    At least one lowercase letter
+    At least one uppercase letter
+    At least one number
+    At least one special character
+    A minimum of 8 characters in length
+    This applies for all password-related actions (Admin reset, self-reset, forgot password).
+  Employee Code Format: The Employee Code is a 4-digit number.
+  PIN: Previously, a 4-digit numerical PIN was used alongside the Employee Code for login. While this field still exists in the database, it is now randomly generated and inserted into the system.
+  User Activation:
+    Upon successful sign-up, the user is automatically marked as active and logged into the system.
+
+Login Process:
+  Email Address:
+    The email address used for login must be unique and previously registered during sign-up.
+  Password:
+    Users must enter a valid password associated with their account. The password must meet the following criteria:
+      At least one lowercase letter
+      At least one uppercase letter
+      At least one number
+      At least one special character
+      A minimum length of 8 characters
+  Successful Login:
+    Upon successful login, users are granted access to their account and automatically redirected to their Calendar/Dashboard based on their User Role.
+  Deactivated User:
+    Users deactivated by Admin cannot log into the system.
+  Invalid Credentials:
+    If the email address or password is incorrect, the user will not be able to proceed from the login page. A relevant error message will be displayed.
+
+Forgot Password:
+  There are two ways to reset a password:
+    Self-Service Reset:
+      Click on the Forgot Password link and enter your registered email address.
+      If the email is not found in the system, no reset email will be sent.
+      If the email is associated with an active user, a reset link will be sent to the provided address. Clicking the link will allow the user to set a new password, which must meet the strong password criteria.
+      The reset token and email address will be validated before the password can be reset successfully.
+      If the email is associated with a deactivated user, an email will be sent notifying that the account is deactivated by Admin. The user will be instructed to contact Admin for further assistance.
+    Admin-Assisted Reset:
+      If self-service reset is not possible, the user must contact Admin to reset their password.
+      The new password set by Admin must also meet the strong password criteria.
+
+Self-Password Reset (After Login):
+  To reset your password, you must provide the following:
+    The old password must match the current strong password on record.
+    The new password must meet the strong password criteria.
+
+Admin Authorities (RBAC – User Management):
+  An Admin has the following privileges over non-admin users:
+    Change a user’s role.
+    Reset a user’s password.
+    Activate or deactivate a user account.
+  Restrictions:
+    Admins cannot assign the Admin role to any user. Admin accounts are seeded in the database by default.
+    Admins cannot perform user-management actions on other Admins.
+    Admins cannot perform restricted actions on their own account, including:
+      Deactivating their own account
+      Changing their own role
+      Resetting their own password - Self password reset follows a separate workflow, as defined earlier.
+  User Deactivation Rule:
+    When Admin deactivates any user in the system, he will also be removed from the team he was allocated to or was managing.
+    It should be displayed in some kind of information or warning about upon deactivation, the user will be removed from the team he was a member of or was managing.
+  Role Change Rule:
+    If any user is ever going to be made a basic level user from Manager Role, then he first needs to be removed from the manager role of a team he was managing.
+    It should be displayed in some kind of information or warning about upon changing role from Manager to Basic Level user, the user will be removed from the manager role he was a manager of.
+
+Role Hierarchy and API Access:
+  Roles and Hierarchy (highest to lowest privileges):
+    Admin – Highest level
+    Manager – Second level
+    Intern / Consultant / Employee – Lowest level
+  Privileges by Role:
+    Admin:
+      Full access to all APIs and system actions.
+      Can manage users (non-admins) and perform any administrative tasks.
+    Manager:
+      Moderate access to APIs.
+      Can perform higher-level actions relevant to management but cannot access Admin-only APIs.
+    Intern, Consultant, Employee:
+      Restricted access.
+      Can only access APIs relevant to their own work or profile.
+      Cannot perform administrative or managerial actions.
+  Access Rules:
+    Roles are strictly hierarchical: lower-level roles cannot access APIs of higher-level roles.
+    Admins are the only role with unrestricted system access.
+    Managers moderate certain upper-level APIs, but Admin-only APIs remain inaccessible to all non-admins.
+    The hierarchy ensures separation of duties, secure API access, and prevents privilege escalation.
+
+Admin Rights Over Teams - User control:
+  Admins have full control over teams and can perform the following actions:
+    Team Management (CRUD):
+      Create, read, update, and delete teams.
+      Each team includes:
+        Name
+        Description
+        Manager
+        Multiple team members
+        Weekly off day(s)
+    Team Membership:
+      Add or remove members from a team.
+    Manager Assignment:
+      Assign or change the manager of a team.
+    Weekly Offs:
+      Create, read, update, and delete the weekly off schedule for a team.
+
+Team Deactivation/Deletion Rules:
+  A team cannot be deactivated while it has active members or an assigned manager.
+  All members must be removed or reassigned, and the manager must be reassigned before deactivation.
+  Admins attempting to deactivate a non-empty team will receive a warning/error message, telling them to empty up the team first.
+  Optional: Provide a cascade option to automatically remove or deactivate members if allowed by business policy.
+
+Manager Rights Over Teams - User control:
+  Managers have limited control over teams and can perform the following actions:
+    Team Membership Management:
+      Add members to a team.
+      Remove members from a team.
+  Managers can't Create, Deactivate teams.
+
+Team Membership Rules:
+  Single Team Membership:
+    A user can belong to only one team at a time, except Admins.
+  Single Team Management:
+    A user can manage only one team at a time, except Admins.
+  Admin Exception:
+    Admins are not part of any team and are not restricted by the above rules.
+
+Admin Rights Over Teams – Attendance Control:
+  Admins have full control over attendance management and can perform the following actions:
+    View Attendance Records:
+      Admins can view attendance records of any user in the system, including self, admmins, basic level users and managers.
+    Override Attendance Records:
+      Admins can override daily attendance for any user (excluding self and other Admins).
+      For a specific day, an Admin can mark attendance as:
+        Present
+        Half Day Leave
+        Full Day Leave
+        Absent (Unpaid Leave)
+      Attendance overridden by an Admin can't be overridden by a Manager.
+
+Manager Rights Over Teams – Attendance Control:
+  Managers have limited attendance control, restricted to the team they are managing:
+    View Attendance Records:
+      Managers can view the attendance records of all members in the team they manage.
+      They cannot view attendance records of users outside their team, other managers, or Admins.
+    Override Attendance Records:
+      Managers can override the daily attendance for any user within their team, except themselves.
+      For a specific day, a Manager can mark attendance as:
+        Present
+        Half Day Leave
+        Full Day Leave
+        Absent (Unpaid Leave)
+      Attendance overridden by a Manager can be overridden by an Admin.
+
+Basic-Level User Rights – Attendance Control:
+  View Attendance:
+    Basic users can view attendance records, but only their own records.
+  Override Attendance:
+    Basic users cannot override attendance, including their own.
+
+Company-Wide Holiday Declaration:
+  Overview:
+    The Company-Wide Holiday Declaration feature allows Admins to define official holidays applicable across the entire organization. The system does not support team-specific holidays.
+
+  Holiday Scope:
+    The system must support company-wide holidays only.
+    Team-level or role-specific holidays must not be supported.
+    Once declared, a holiday applies to all employees across the company.
+
+  Authority & Access Control:
+    Only users with the Admin role are allowed to:
+      Declare holidays
+      Modify or remove declared holidays
+    Non-admin users must not have access to holiday declaration actions.
+
+  Date Constraints & Validation:
+    Advance Declaration:
+      Holidays must be declared in advance.
+      The system must not allow declaration of holidays for past dates.
+
+    Allowed Date Range:
+      Holidays can be declared for:
+        The current date, or
+        Any future date, up to a maximum of 13 months from the current date.
+        Dates beyond the 13-month window must be rejected.
+
+  Holiday Declaration Methods:
+    The system must support two methods for declaring company-wide holidays:
+      Manual Declaration:
+        Admins can declare holidays one at a time via the UI.
+        Required inputs:
+          Holiday date
+          Holiday name / description
+      Bulk Declaration via Excel:
+        Admins can download a sample Excel template to use as a starting point.
+        Admins can upload a completed Excel file to declare multiple holidays at once.
+        The system must provide:
+          File upload validation
+          A preview screen showing parsed holiday data
+          Confirmation before final declaration
+
+  System Behavior & Validation:
+    The system must prevent:
+      Duplicate holiday declarations for the same date
+      Invalid or past dates
+
+    Successfully declared holidays must:
+      Be reflected in attendance calculations
+      Be excluded from payable working days
+
+Attendance & Overtime Report Download:
+  Overview:
+    The Attendance & Overtime Report Download feature allows Admins to export monthly attendance and overtime data in Excel format for payroll processing and payable day calculations.
+  Access Control:
+    This feature must be accessible only to users with the Admin role.
+    Non-admin users must not be able to view or download attendance reports.
+  Report Scope & Format:
+    Report Period:
+      Reports must be generated on a monthly basis.
+      Admins must be able to select the required month and year.
+    File Format:
+      Reports must be downloadable in Excel (.xlsx) format.
+
+  Attendance Report (Sheet 1):
+    The report must include every employee for the selected month.
+    For each employee, the report must show:
+      Attendance status for each calendar day (e.g., Present, Absent, Leave, Holiday, Weekend)
+      Total payable days (derived)
+    Attendance data must reflect:
+      Final attendance state after all overrides (Admin/Manager)
+  Overtime Report (Sheet 2):
+    The same Excel file must include a separate sheet for Overtime data.
+    The overtime sheet must contain:
+      Employee identifier
+      Date of overtime
+      Approved overtime hours
+      Approval status
+    Only approved overtime must be included.
+
+  Data Accuracy & Integrity:
+    The report must use finalized and approved data only.
+    Any overridden attendance or overtime must reflect the latest valid decision.
+    The system must ensure data consistency, as the report directly impacts:
+      Payable days
+      Payroll calculations
+
+  System Behavior:
+    Report generation must be:
+      Deterministic (same inputs → same output)
+      Logged for audit purposes (Admin, month, timestamp)
+    Large datasets must be handled without data loss or truncation.
+
+  Edge Cases & Considerations:
+    Deactivated employees must be included if they were active during the selected month.
+    Time zone handling must be consistent across attendance and overtime data.
+    Partial-month joiners or leavers must be correctly represented.
+
+Marking of Self Attendance:
+  The Self Attendance Marking feature allows employees to record their daily attendance by starting and stopping a single work session per day, with controlled override capabilities for Managers and Admins.
+
+  Attendance Recording:
+    Self Attendance:
+      All employees can mark their own attendance by clicking the Start Working button to begin a work session.
+      Employees can end their work session by clicking the Stop Working button.
+    Single Session Constraint:
+      The system must allow only one working session per employee per calendar day.
+      Multiple start–stop cycles within the same day must not be allowed.
+
+  Attendance Overrides:
+    Override Authority:
+      Attendance records can be overridden by:
+        Users with the Admin role
+        The employee’s Reporting Manager
+    Mandatory Remarks:
+      Any override action must require the approver to provide remarks.
+      The system must not allow override submission without remarks.
+
+  Override Priority Rules:
+    Admin Priority:
+      If an Admin overrides an attendance record:
+        The Admin’s decision is final
+        Managers must not be allowed to override an Admin-overridden attendance
+    Manager Priority:
+      If no Admin override exists:
+        The Manager’s override decision is considered final
+
+  System Behavior & Validation:
+    The system must track:
+      Original attendance data
+      Override history (role, user, timestamp, remarks)
+    The system must enforce override hierarchy and prevent unauthorized override attempts.
+    The most recent valid override (based on priority rules) must be treated as the effective attendance record.
+
+Leave Request Flow:
+  Leave Application Rules:
+    Half-Day Leave:
+      User must have a minimum leave balance of 0.5 days to apply for a half-day leave.
+
+    Full-Day Leave:
+      User must have a minimum leave balance of 1.0 day to apply for a full-day leave.
+
+  Unpaid Leave Handling:
+    Leave Exhaustion:
+      If a user exhausts their leave balance during a month, any further leave taken must be treated as Unpaid Leave.
+
+    Non-Paid Leave Application:
+      When leave balance is insufficient, the system must enforce leave applications as Non-Paid Leave.
+
+  Leave Request Submission:
+    Mandatory Request:
+      Every employee must submit a leave request for any leave taken.
+      Leave requests are required for past-dated, current-dated, and future-dated leaves.
+    Applicable Dates:
+      The system must allow leave requests for:
+        Past dates
+        Current dates
+        Future dates
+  Approval Workflow:
+    Approval Recipients:
+      Each leave request must be routed to:
+        The employee’s Reporting Manager
+        All users with the Admin role
+    Approval Authority:
+      Any one of the assigned approvers (Manager or Admin) can:
+        Approve the leave request, or
+        Reject the leave request
+    Final Decision:
+      Once a leave request is approved or rejected by any authorized approver, the request status must be finalized.
+      No further approvals or rejections are allowed after finalization.
+  Access & Validation Rules:
+    Self-Approval Restriction:
+      Users must not be allowed to approve or reject their own leave requests, regardless of role.
+    Role Validation:
+      Only users with Admin role or assigned as the employee’s Manager are allowed to take action on the leave request.
+      The system must enforce role-based permissions before allowing approve/reject actions.
+  The system must maintain an audit trail capturing:
+    Approver identity
+    Action taken (approve/reject)
+    Timestamp
+  The system must update leave balances or unpaid leave status upon approval, based on leave eligibility rules.
+
+Clash of Leaves Feature:
+  The Leave Clash Detection is a vital and off beat feature helps Admins and Managers make informed approval decisions by highlighting overlapping leave requests within a team, enabling better assessment of potential impact on team capacity and productivity.
+
+  Scope & Comparison Logic:
+    Team-Based Comparison:
+      Leave clash detection must be evaluated within the requester’s team.
+      Only users belonging to the same team are considered for comparison.
+    Leave Status Consideration:
+      The system must compare the requested leave dates against:
+        Approved leave requests only
+      Pending or rejected leave requests must not be included in clash calculations.
+    Date Overlap Logic:
+      A clash is identified when:
+        One or more team members have approved leave overlapping partially or fully with the requested leave dates.
+
+  Edge Cases & Considerations:
+    Half-day leaves must be considered in clash calculations based on overlap timing.
+    If a team member is deactivated, their leave data must be excluded.
+    Cross-team leaves must not be included in clash detection.
+
+Overtime Request Flow:
+  The Overtime Request Approval Flow enables employees to submit overtime claims after overtime work has been completed, with hourly-level tracking and role-based approval by Managers or Admins.
+
+  Overtime Request Submission:
+    Post-Completion Requirement:
+      Overtime requests must be submitted only after the overtime work has been completed.
+      Future-dated overtime requests must not be allowed.
+    Hourly Granularity:
+      Overtime must be submitted and recorded on an hourly basis.
+      The system must allow fractional hours (if applicable, configurable).
+    Mandatory Request:
+      Employees must submit an overtime request to claim any overtime hours worked.
+
+  Approval Workflow:
+    Approval Authority:
+      Overtime requests must be routed to:
+        The employee’s Reporting Manager
+        All users with the Admin role
+    Approval Action:
+      Any one authorized approver (Manager or Admin) can:
+        Approve the overtime request, or
+        Reject the overtime request
+    Finalization:
+      Once approved or rejected by any authorized approver, the request status must be finalized.
+      No further actions are allowed after finalization.
+
+  Edge Cases & Considerations:
+    Multiple overtime entries for the same day must be handled without duplication.
+    If the Manager is unavailable or deactivated, Admins remain authorized approvers.
+    Concurrent approval actions must be locked after the first decision.
+
+
+Leave Crediting System – Rules:
+  Ineligible Users:
+    Users with status Deactivated must not receive any leave credits.
+    Users with role Intern or Consultant must not receive any leave credits.
+
+  Eligible Users:
+    Users with roles Employee, Manager, or Admin are eligible for leave credit, subject to tenure requirements.
+
+  Tenure Requirement:
+    Leave crediting starts only after the user completes three (3) months from their joining date.
+    Users who have not completed three months must not receive any leave credits.
+
+  Crediting Rules:
+    Monthly Credit:
+      Eligible users receive 1.75 earned leaves per month.
+      Leave credits are applied at the beginning of each calendar month.
+
+    Mid-Month Joinees:
+      No prorated leave credit is applied before completion of the three-month eligibility period.
+
+  Leave is not credited to deactivated users.
+  Interns and Consultants are not eligible for leave credit.
+  Eligible roles (Employees, Managers, and Admins) receive 1.75 earned leaves per month, credited at the beginning of each month.
+  Leave credit begins only after completion of three months of service. No leave is credited before this eligibility period.
+  A minimum leave balance of 0.5 days is required to apply for a half-day leave.
+  A minimum leave balance of 1 day is required to apply for a full-day leave.
+  If leave balance is exhausted during a month, any additional leave taken will be treated as unpaid leave.
+  In such cases, leave applications must be submitted as Non-Paid Leave.
+
+Dashboard Views of Attendance:
+  For Admin:
+  For Manager:
+
+Leave Request Cancellation Flow:
+  Overview:
+    The Leave Request Cancellation Flow allows employees to cancel previously submitted leave requests, with controlled behavior based on leave status, dates, and approval state, while ensuring data integrity and payroll accuracy.
+  Who Can Cancel:
+    Employee-Initiated Cancellation:
+      Employees can cancel their own leave requests only.
+      Users must not be allowed to cancel leave requests created by others.
+    Admin Override Cancellation:
+      Admins can cancel leave requests for any employee.
+      Admin-initiated cancellations require mandatory remarks.
+  Cancellation Eligibility Rules:
+    Pending Leave Requests:
+      Pending (not yet approved/rejected) leave requests:
+        Can be cancelled directly by the employee
+        Do not require approval
+    Approved Leave Requests:
+      Approved leave requests can be cancelled:
+        Before the leave start date by the employee
+        On or after the leave start date only by an Admin
+    Rejected Leave Requests:
+      Rejected leave requests must not be cancellable.
+  Date-Based Constraints:
+    Leave requests with only future dates:
+      Can be cancelled by the employee at any time before the leave starts.
+    Leave requests with current or past dates:
+      Cannot be cancelled by the employee
+      Require Admin intervention
+  Approval & Finality Rules:
+    Cancellation actions are final and must not require additional approval.
+    Once cancelled, a leave request must move to a Cancelled state and become immutable.
+  System Behavior:
+    Leave Balance Reversal:
+      Upon successful cancellation:
+        Credited leave days must be reverted back to the employee’s leave balance
+        Unpaid leave entries must be removed or recalculated
+    Clash Recalculation:
+      Cancellation must trigger recalculation of:
+        Team leave clashes
+        Leave availability for overlapping requests
+  Attendance Impact:
+    If attendance was already marked as leave:
+      The system must re-evaluate attendance status for affected dates
+  Audit & Tracking:
+    The system must log:
+      Who cancelled the leave
+      Role (Employee/Admin)
+      Timestamp
+      Remarks (if Admin)
+    Cancellation history must be visible to Admins.
+  Edge Cases & Considerations:
+    Partial cancellation of multi-day leaves (optional future enhancement).
+    Cancellation after payroll lock (may require Admin-only override).
+    Notifications to Managers/Admins on cancellation.
+
+Partial Cancellation of Multi-Day Leave Requests:
+  Leave Request cancellation must be only for leaves and not for Overtime requests.
+  Overview:
+    Partial Leave Cancellation allows users to cancel specific dates within an already submitted or approved multi-day leave request, without cancelling the entire request.
+
+  Eligibility Rules:
+    Leave Type Constraint:
+      Partial cancellation is allowed only for multi-day leave requests.
+      Single-day leave requests must not support partial cancellation.
+    User Permissions:
+      Employees can partially cancel their own leave requests.
+      Admins can partially cancel leave requests for any employee.
+      Managers must not be allowed to partially cancel employee leave requests.
+
+  Status-Based Rules:
+    Pending Leave Requests:
+      Partial cancellation is allowed for:
+        Any future date(s) within the request
+        No approval is required.
+    Approved Leave Requests:
+      Employees can partially cancel:
+        Only future dates (dates strictly after today)
+      Admins can partially cancel:
+        Past, current, or future dates
+        Mandatory remarks required
+    Rejected Leave Requests:
+      Partial cancellation must not be allowed.
+
+  Date Selection Rules:
+    The system must allow selection of:
+      One or more individual dates within the original leave range
+    The system must prevent:
+      Selection of dates outside the original leave request
+      Cancellation of all dates (must redirect to Full Cancellation flow)
+
+  Leave Request State Handling:
+    Request Splitting Logic:
+      On partial cancellation, the system must:
+        Split the original leave request into:
+          Updated Leave Request (remaining active dates)
+          Cancelled Leave Segment (cancelled dates, non-editable)
+
+  Status Retention:
+    The remaining leave request retains its original status:
+      Pending remains Pending
+      Approved remains Approved
+
+  Leave Balance Adjustment:
+    Cancelled leave days must be:
+      Credited back to the employee’s leave balance (if paid leave)
+    Any unpaid leave entries for cancelled dates must be:
+      Removed or recalculated
+    Reversal must be date-accurate (including half-day logic).
+
+  Attendance & Payroll Impact:
+    Attendance Recalculation:
+      For cancelled dates:
+        Attendance must be re-evaluated (Present / Absent / Holiday)
+        Admin overrides remain respected.
+    Payroll Safety:
+      Partial cancellation must not be allowed after payroll lock
+        unless performed by Admin with override remarks (configurable)
+
+  Clash Recalculation:
+    Cancelled dates must immediately:
+      Reduce team leave clashes
+      Refresh clash indicators for overlapping leave requests
+
+  Audit & Tracking:
+    The system must log:
+      Original leave request ID
+      Cancelled dates
+      Actor (Employee/Admin)
+      Timestamp
+      Remarks (Admin only)
+    Full cancellation history must be preserved.
+
+  UX Expectations:
+    Date-picker UI showing:
+      Original leave dates
+      Selectable cancellable dates
+      Disabled non-cancellable dates (past dates for employees)
+    Show Clear warning when:
+      Cancellation affects payroll or attendance
+
+  Edge Cases & Considerations:
+    Cancellation of half-days within multi-day leaves
+    Holidays and weekends inside the leave range
+    Back-to-back partial cancellations on the same request
+
+Date formats and time formats followed in the project:
+  DD/MM/YYYY
+  12 hour format
+
+What if someone starts working on a day he's not supposed to work?
+  Two cases:
+    1. Company Holiday / Team Weekly Off:
+      - Disable Start Working / Stop Working buttons, hover tooltip, Enjoy your day
+      - Attendance cannot be marked
+      - Any exceptional work must be captured via Overtime requests
+      - This applies even in emergency scenarios
+    2. On Approved Leave:
+      Full day:
+        - Start Working / Stop Working must be disabled
+          Message like:
+            "You have an approved leave for today. Attendance cannot be marked."
+        - If the employee actually worked:
+          - The leave must be cancelled (fully or partially) as per Leave Cancellation rules
+          - Attendance or Overtime can only be recorded after cancellation
+      Half Day:
+        No need of disabling the Start Working/Stop working button.
+        But when on half day leave, the 4 hour check must be applied instead of the 8 hour check.
+
+What if someone forgot to Click on Start/Stop Working => Apply for Present:
+  We send them Notifications:
+    Send alert: “You forgot to stop your work session on 25/01/2026. Please confirm duration.”
+    Partial: End time update
+    Full: Both times update
+  Then it goes to Manager/Admin for approval.
+
+Multiple sessions/day:
+  You allow only 1 session/day, but no exception handling is defined for emergencies (e.g., system crash mid-session).
+  So, also needs to have summation of the timings in place.
+  Daily work summary upon clicking of Stop Working.
+
+Deactivating a team:
+  Maintain a mandatory `is_active` flag for team as well, just like we have for Users. By default true.
+  Also add a mandatory `shutdown_remark` when a team is deactivated.
+  Do NOT allow deactivating (or deleting) a team while it still has an active manager or active members.
+  They must be removed or reassigned first.
+  Show Reassignment option first:
+    Reassign team members:
+      Users instead of being simply deactivated can be reassigned to other teams.
+  Then show deactivation options later:
+    Manual first, optional cascade:
+      By default, block team deactivation if team has users/manager.
+        Show warning with:
+          Count of members
+          Manager name
+      Provide optional checkbox:
+        “Also deactivate all users in this team (use with caution)”
+
+Leave Application Transparency:
+  While applying for leave, display the following information to the employee:
+    Available leave balance
+    Number of paid leaves
+    Number of unpaid leaves (if the requested leave exceeds the available balance)
+  The same leave breakdown must be visible to the approver during approval or rejection.
+
+Leave Accrual System and display of leave balances logic:
+  The Leave accrual system also plays up like the payable days, but has more restrictions.
+  Interns don't get any leaves credited.
+  Deactivated users don't get any leaves credited.
+  For a person to be eligible for leaves, he must complete at least 3 months from his date of joining.
+  Rest of the eligible people gets 1.75 leaves credited to them at the beginning of every month.
+  If the record already exists for a month, it should not recredit the leaves.
+
+Payable Days Calculation for Excel Sheet:
+  If the user has even a single attendance record in the month then include them in the attendance reports, regardless of the active/deactivated status.
+  Payable Days includes weekend counts, earned leaves, holidays.
+  Present Days are independent of Payable days.
+  If the attendance was marked in calendar on a weekly off day because the admin altered the weekly offs for just one day, then that attendance should take preference.
+  If no entry was found in the attendance record on a working day, then it would be explicitly treated as Absent, even if there were leaves pending in Balance.
+
+  P - Present
+  A - Absent(Marked Absent/Unpaid Leave)
+  L - Leave
+  WO - Team Weekend Off
+  PD - Payable Day
+  HD - Company Holiday
+  1/2 Day - Half Day
+
+  Deactivated Users:
+    Is the joining date in this month?
+      If Yes, then begin counting payable days from that date.
+      Else count from the beginning of month.
+      Don't include prior weekends & holidays before the joining date.
+    When was the last working day of that user?
+      If the User was deactivated in this month and his status is also current deactivated, then find out his beginning and ending of his tenure(Last Working Day) and fill up only the days in between.
+      Don't include further weekends & holidays from the Last working day.
+  Active Users:
+    Is the joining date in this month?
+      If Yes, then begin counting payable days from that date.
+      Else count from the beginning of month.
+      Don't include prior weekends & holidays before the joining date.
+
+  Hierarchy of marking present/absent:
+    Admin Marked - Highest level
+    Manager Marked
+    Self - Lowest Level
+
+Features to implement in future:
+  Short hours reporting.
+  Attendance Override Limits. Based on Team size, limits must vary.
+  Team based leave permits per day.

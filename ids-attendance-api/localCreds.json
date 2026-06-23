@@ -1,0 +1,14 @@
+{
+  "admin": {
+    "identifier": "kamlesh@itviadatasolutions.com",
+    "secret": "IDS@dmin333!"
+  },
+  "manager": {
+    "identifier": "sushil@marksparksolutions.com",
+    "secret": "M@n@ger333!"
+  },
+  "employee": {
+    "identifier": "yashshree@marksparksolutions.com",
+    "secret": "Emp@333!"
+  }
+}
