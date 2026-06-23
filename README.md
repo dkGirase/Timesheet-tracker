@@ -1,7 +1,7 @@
 Node Version: 24.11.1
 PostGreSQL Version: 16.4
 
-# IDS Attendance
+# Timesheet Tracker
 
 **Version:** 1.0.0
 **Author:** Akshay Pawar
