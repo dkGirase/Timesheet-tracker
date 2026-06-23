@@ -4,10 +4,8 @@ PostGreSQL Version: 16.4
 # Timesheet Tracker
 
 **Version:** 1.0.0
-**Author:** Akshay Pawar
-**License:** Proprietary
 
-IDS Attendance is an attendance management software designed for IDS. It provides APIs for managing users, recording attendance, and integrating with a PostgreSQL database using Prisma ORM.
+Timesheet Tracker is an attendance management software designed for IDS. It provides APIs for managing users, recording attendance, and integrating with a PostgreSQL database using Prisma ORM.
 
 ---
 
